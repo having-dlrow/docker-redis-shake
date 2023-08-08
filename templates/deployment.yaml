@@ -34,9 +34,11 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            - "/redis-shake"
-            - "-type={{ .Values.config.type }}"
-            - "-conf=/redis-shake.conf"
+            - "redis-shake"
+            - "{{ .Values.redisshake.config.type }}.toml"
+          env:
+          - name: PATH
+            value: "/workspace/RedisShake"
           ports:
             - name: http
               containerPort: 80
@@ -61,11 +63,12 @@ spec:
               subPath: restore.toml          
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
       volumes:
         - name: config-volume
           configMap:
-            name: {{ include "redishake-helm.fullname" . }}-config      
+            name: {{ include "redis-migration.fullname" . }}-config
+            defaultMode: 0755      
+      {{- with .Values.nodeSelector }}                          
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
